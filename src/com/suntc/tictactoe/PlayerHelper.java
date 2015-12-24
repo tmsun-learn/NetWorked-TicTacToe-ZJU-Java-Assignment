@@ -21,18 +21,13 @@ public class PlayerHelper implements Runnable
 	private PrintWriter out;
 	
 	private ProduceConsume ProCon;
-	//private Lock Alock;
-	//private Condition NotPlay;
-	//private Boolean InGame;
+
 	
 	public PlayerHelper(Game gm, Socket s, ProduceConsume p)//, Lock l, Condition c, Boolean b)
 	{
 		this.Game = gm;
 		this.Sock = s;
 		this.ProCon = p;
-		//this.Alock = l;
-		//this.NotPlay = c;
-		//this.InGame = b;
 		
 		try
 		{
@@ -66,10 +61,12 @@ public class PlayerHelper implements Runnable
 		if (Game.HasWinner())
 		{
 			out.println(Server.S_YOULOSE);
+			GameOver = true;
 		}
 		else if (Game.Tie())
 		{
 			out.println(Server.S_GAMETIE);
+			GameOver = true;
 		}
 	}
 	
@@ -97,11 +94,15 @@ public class PlayerHelper implements Runnable
 					out.println(Server.S_MOVEOK + Param);
 					if (Game.HasWinner())
 					{
+						System.out.println("PlayerHelper: HasWinner");
 						out.println(Server.S_YOUWIN);
+						GameOver = true;
 					}
 					else if (Game.Tie())
 					{
+						System.out.println("PlayerHelper: Tie");
 						out.println(Server.S_GAMETIE);
+						GameOver = true;
 					}
 						
 				}

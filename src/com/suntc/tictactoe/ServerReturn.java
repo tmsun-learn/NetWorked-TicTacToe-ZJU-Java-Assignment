@@ -5,9 +5,6 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class ServerReturn implements Runnable
 {
@@ -16,9 +13,6 @@ public class ServerReturn implements Runnable
 	private PrintWriter out;
 	String Message;
 	String PlayerName;
-	//public Boolean InGame = new Boolean(false);
-	//public final Lock Alock = new ReentrantLock();
-	//public final Condition NotPlay = Alock.newCondition();
 	private ProduceConsume ProCon;
 	
 	public ServerReturn(Socket X, ProduceConsume p)
@@ -31,10 +25,7 @@ public class ServerReturn implements Runnable
 	{
 		Server.WaitingArray.add(this.Sock);
 		Server.ProConArray.add(this.ProCon);
-		//Server.UserNames.add(this.PlayerName);
-		//Server.LockArray.add(Alock);
-		//Server.CondArray.add(NotPlay);
-		//Server.InGameBoolArray.add(InGame);
+
 		System.out.println("Queue length: " + Server.WaitingArray.size());
 
 	}

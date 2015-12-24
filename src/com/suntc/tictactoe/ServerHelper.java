@@ -20,7 +20,9 @@ public class ServerHelper implements Runnable
 			X.start();
 			Y.start();
 			Server.WaitingArray.remove(0);
+			Server.ProConArray.remove(0);
 			Server.WaitingArray.remove(0);
+			Server.ProConArray.remove(0);
 		}
 	}
 	

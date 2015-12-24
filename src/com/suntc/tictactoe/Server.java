@@ -6,22 +6,17 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
+
 
 public class Server
 {
 	public static ArrayList<Socket> ConnectionArray = new ArrayList<Socket>();
 	public static ArrayList<String> UserNames = new ArrayList<String>();
-	//public static ArrayList<Lock> LockArray = new ArrayList<Lock>();
-	//public static ArrayList<Condition> CondArray = new ArrayList<Condition>();
-	//public static ArrayList<Boolean> InGameBoolArray = new ArrayList<Boolean>();
+
 	public static ArrayList<Socket> WaitingArray = new ArrayList<Socket>();
 	public static ArrayList<ProduceConsume> ProConArray = new ArrayList<ProduceConsume>();
 	final static int PORT = 444;
 	
-	private static PrintWriter out;
-	private static BufferedReader in;
 	
 	//Command Codes
 	public static final int CMD_LEN = 7;

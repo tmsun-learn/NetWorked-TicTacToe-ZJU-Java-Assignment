@@ -4,7 +4,7 @@ import java.util.Random;
 
 public class Game
 {
-	private BoardOwner Board[];
+	public BoardOwner Board[];
 	private PlayerHelper PHelper1, PHelper2;
 	private PlayerHelper CurrentPlayer = null;
 	private int NumOfMove;
@@ -44,9 +44,9 @@ public class Game
 			this.CurrentPlayer = PHelper2;
 		}
 		Board = new BoardOwner[9];
-		for (BoardOwner bo : Board)
+		for (int i = 0; i < 9; ++i)
 		{
-			bo = new BoardOwner();
+			Board[i] = new BoardOwner();
 		}
 	}
 	
@@ -61,15 +61,18 @@ public class Game
 				Board[location].MoveOrder = NumOfMove++;
 				CurrentPlayer = player.GetOpponent();
 				CurrentPlayer.RecordOpponentMove(location);
+				System.out.println("Game: return VALIDMOVE");
 				return VALIDMOVE;
 			}
 			else
 			{
+				System.out.println("Game: return INVALIDMOVE");
 				return INVALIDMOVE;
 			}
 		}
 		else
 		{
+			System.out.println("Game: return NOTYOURTURN");
 			return NOTYOURTURN;
 		}
 	}
@@ -103,7 +106,7 @@ public class Game
 		}
 	}
 	
-	private class BoardOwner
+	public class BoardOwner
 	{
 		public PlayerHelper Owner = null;
 		public int MoveOrder = -1;
