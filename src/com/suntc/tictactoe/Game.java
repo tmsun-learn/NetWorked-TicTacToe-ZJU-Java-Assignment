@@ -38,10 +38,15 @@ public class Game
 		if (Rand.nextInt(2) == 0)
 		{
 			this.CurrentPlayer = PHelper1;
+			/*ugly..*/
+			PHelper1.MoveFirst = true;
+			PHelper2.MoveFirst = false;
 		}
 		else
 		{
 			this.CurrentPlayer = PHelper2;
+			PHelper1.MoveFirst = false;
+			PHelper2.MoveFirst = true;
 		}
 		Board = new BoardOwner[9];
 		for (int i = 0; i < 9; ++i)
@@ -104,6 +109,15 @@ public class Game
 		{
 			return false;
 		}
+	}
+	
+	public void HasQuit(PlayerHelper player)
+	{
+		if (player == PHelper1)
+			PHelper2.OpponentQuit();
+		else if (player == PHelper2)
+			PHelper1.OpponentQuit();
+			
 	}
 	
 	public class BoardOwner

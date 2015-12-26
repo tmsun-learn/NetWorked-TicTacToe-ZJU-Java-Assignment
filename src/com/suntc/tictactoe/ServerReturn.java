@@ -25,7 +25,7 @@ public class ServerReturn implements Runnable
 	{
 		Server.WaitingArray.add(this.Sock);
 		Server.ProConArray.add(this.ProCon);
-
+		Server.UserNames.add(PlayerName);
 		System.out.println("Queue length: " + Server.WaitingArray.size());
 
 	}
@@ -76,15 +76,19 @@ public class ServerReturn implements Runnable
 					if (Message != null)
 					{
 						System.out.println(Message);
-						if (Message.equals("ENQUEUE"))
+						String CmdCode = Message.substring(0, Server.CMD_LEN);
+						String Param = Message.substring(Server.CMD_LEN);
+						if (CmdCode.equals(Server.C_ENQUEUE))
 						{
 							System.out.println("Socket " + Sock.getPort() + " enqueue");
 							Enqueue();
 						}
-						else if (Message.contains("#NAME"))
+						else if (CmdCode.contains(Server.C_NAMEIS))
 						{
-							this.PlayerName = Message.substring(5);
-							System.out.println("Plater " + Sock.getPort() + " has a name: " + this.PlayerName);
+							this.PlayerName = Param;
+							System.out.println("Player " + Sock.getPort() + " has a name: " + this.PlayerName);
+							out.println(Server.S_NAME_CONFIRED);
+							out.flush();
 						}
 						else // send to PlaterHelper
 						{
@@ -107,11 +111,28 @@ public class ServerReturn implements Runnable
 		{
 			System.err.println("Cannot scan input, may be client disconnected");
 		}
+		
 		finally
 		{
 			System.out.println("Client " + Sock + "disconnected from server");
-			//Sock.close();
-			//return;
+			for (int i = 0; i < Server.WaitingArray.size(); ++i)
+			{
+				if (Server.WaitingArray.get(i) == Sock)
+				{
+					System.out.println("remove from waiting queue");
+					Server.WaitingArray.remove(i);
+					Server.ProConArray.remove(i);
+					Server.UserNames.remove(i);
+				}
+			}
+			System.out.println("Inform PlayerHelper");
+			ProCon.Put(Server.E_SOCKETDEAD);
+			try
+			{
+				Sock.close();
+			}
+			catch (Exception e)
+			{ }
 		}
 		
 	}
