@@ -5,8 +5,6 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
 
 public class PlayerHelper implements Runnable
 {
@@ -14,7 +12,7 @@ public class PlayerHelper implements Runnable
 	private PlayerHelper Opponent;
 	private Game Game;
 	private String OpponentName;
-	private boolean GameOver = false;
+	private volatile boolean GameOver = false;
 	public boolean MoveFirst;
 	private String Message, CmdCode, Param;
 	private int GameRetCode;
@@ -101,6 +99,11 @@ public class PlayerHelper implements Runnable
 		while (!GameOver)
 		{
 			Message = ProCon.Get();
+			if (GameOver)
+			{
+				System.out.println("PlayerHelper: End run(), opponent is " + OpponentName);
+				return;
+			}
 			System.out.println("PlayerHelper: " + Message);
 			if (Message != null)
 			{
@@ -155,6 +158,6 @@ public class PlayerHelper implements Runnable
 				out.flush();
 			}
 		}//while
-		
+		System.out.println("PlayerHelper: End run(), opponent is " + OpponentName);
 	}
 }

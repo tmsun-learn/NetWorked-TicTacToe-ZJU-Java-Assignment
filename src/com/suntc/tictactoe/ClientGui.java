@@ -7,13 +7,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.net.UnknownHostException;
+import java.net.URL;
 import java.util.Scanner;
 
 import javax.imageio.ImageIO;
@@ -31,8 +32,8 @@ import javax.swing.UIManager;
 
 public class ClientGui {
 
-	final static String SERVER_IP = "127.0.0.1";
-	final static int SERVER_PORT = 444;
+	static String SERVER_IP;// = "127.0.0.1";
+	static int SERVER_PORT;// = 444;
 	private static Socket Sock;
 	private static PrintWriter out;
 	private static Scanner in;
@@ -44,6 +45,7 @@ public class ClientGui {
 	private String PlayerName;
 	private String OpponentName;
 	private boolean MoveFirst;
+	private boolean MyTurn;
 	private int Spaces[];//-1: not occupied, 0:opponent, 1:this
 	
 	private JFrame mainFrame;
@@ -51,6 +53,7 @@ public class ClientGui {
 	private Painter painter;
 	private JPanel panelCont;
 	private JDialog dlgWaiting;
+	private JDialog dlgOppLeave;
 	private JLabel lblWaiting;
 	private JButton btnStart;
 	private JButton btnQuit;
@@ -63,13 +66,12 @@ public class ClientGui {
 	private BufferedImage tie;
 	private ImageIcon loading;
 	private CardLayout cl;
-	private JLabel lblMyName;
-	private JLabel lblOppName;
-	private JLabel lblVersus;
 	private JButton btnBack;
 	private BoxLayout bxButton;
 	private Font fontName;
 	private Font fontVersus;
+	private Font fontTurn;
+	private Font fontButton;
 	
 	private final int WIDTH = 720;
 	private final int HEIGHT = 530;
@@ -89,18 +91,33 @@ public class ClientGui {
 	private final int BOARD_LEN = 500;
 	private final int NAME_X = 530;
 	private final int VERSUS_OFFSET = 20;
-	private final int NAME_Y = 60;
+	private final int NAME_Y = 80;
 	private final int NAME_GAP = 40;
 	private final int NAME_WIDTH = 250;
 	private final int NAME_HEIGHT = 50;
+	private final int TURN_X = 515;
+	private final int TURN_Y = 270;
 	private final int BACK_WIDTH = 120;
 	private final int BACK_HEIGHT = 50;
 	private final int BACK_X = 540;
 	private final int BACK_Y = 400;
 	
 	
-	static void Connect() throws IOException
+	void Connect() throws IOException
 	{
+		
+		try
+		{
+			Scanner s = new Scanner(getClass().getResourceAsStream("/config"));
+			System.out.println(in != null);
+			SERVER_IP = s.nextLine();
+			SERVER_PORT = s.nextInt();
+			s.close();
+		}
+		catch (Exception e)
+		{
+			System.err.println("Config file not found...");
+		}
 		Sock = new Socket(SERVER_IP,SERVER_PORT);
 		out = new PrintWriter(Sock.getOutputStream());
 		in = new Scanner(Sock.getInputStream());
@@ -130,15 +147,11 @@ public class ClientGui {
 		lblWaiting = new JLabel("",loading,JLabel.CENTER);
 		btnStart = new JButton("Play");
 		btnQuit = new JButton("Quit");
-		lblMyName = new JLabel("myname");
-		lblOppName = new JLabel("oppname");
-		lblVersus = new JLabel("Versus");
 		btnBack = new JButton("Back");
-		fontName = new Font("Monospaced",Font.BOLD,32);
-		fontVersus = new Font("Serif",Font.BOLD,25);
-		//bxButton = new BoxLayout(panelButton,BoxLayout.Y_AXIS);
-		//panelButton.setLayout(bxButton);
-		
+		fontName = new Font("Comic Sans MS",Font.BOLD,32);
+		fontVersus = new Font("Jokerman",Font.PLAIN,25);
+		fontTurn = new Font("Jokerman",Font.BOLD,30);
+		fontButton = new Font("Cooper Black",Font.PLAIN,23);
 		mainFrame.setSize(WIDTH,HEIGHT);
 		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		mainFrame.setVisible(true);
@@ -146,31 +159,27 @@ public class ClientGui {
 		dlgWaiting.setVisible(false);
 		dlgWaiting.setResizable(false);
 		dlgWaiting.setSize(DIALOG_WIDTH,DIALOG_HEIGHT);
+		dlgWaiting.setLocationRelativeTo(mainFrame);
 		dlgWaiting.getContentPane().add(lblWaiting);
 		dlgWaiting.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
 		btnStart.setBounds((WIDTH - BUTTON_WIDTH)/2, 70, BUTTON_WIDTH, BUTTON_HEIGHT);
+		btnStart.setFont(fontButton);
 		btnQuit.setBounds((WIDTH - BUTTON_WIDTH)/2, 170, BUTTON_WIDTH, BUTTON_HEIGHT);
+		btnQuit.setFont(fontButton);
 		btnStart.addActionListener(new PlayAction());
+		btnQuit.addActionListener(new QuitAction());
 		panelButton.setLayout(null);
 		panelButton.add(btnStart);
 		panelButton.add(btnQuit);
-		panelCont.add(painter,"2");
+		panelCont.add(painter,"2");//put two panels into CardLayout
 		panelCont.add(panelButton,"1");
 		cl.show(panelCont, "1");
 		mainFrame.add(panelCont);
-		lblMyName.setFont(fontName);
-		lblOppName.setFont(fontName);
-		lblVersus.setFont(fontVersus);
-		lblMyName.setBounds(BOARD_LEN + NAME_X, NAME_Y, NAME_WIDTH, NAME_HEIGHT);
-		lblOppName.setBounds(BOARD_LEN + NAME_X, NAME_Y + NAME_GAP + NAME_GAP, NAME_WIDTH, NAME_HEIGHT);
-		lblVersus.setBounds(BOARD_LEN + NAME_X + VERSUS_OFFSET, NAME_Y + NAME_GAP, NAME_WIDTH, NAME_HEIGHT);
 		btnBack.setBounds(BACK_X,BACK_Y,BACK_WIDTH,BACK_HEIGHT);
+		btnBack.setFont(fontButton);
 		btnBack.setVisible(false);
 		btnBack.addActionListener(new BackAction());
 		painter.setLayout(null);
-		//painter.add(lblMyName);
-		//painter.add(lblOppName);
-		//painter.add(lblVersus);
 		painter.add(btnBack);
 	}
 	
@@ -210,49 +219,62 @@ public class ClientGui {
 			else if (CmdCode.equals(Server.S_YOU_MOVEFIRST))
 			{
 				MoveFirst = true;
-				//set label
+				MyTurn = true;
+				painter.repaint();
 			}
 			else if (CmdCode.equals(Server.S_OPPONENT_MOVEFIRST))
 			{
 				MoveFirst = false;
-				//set label
+				MyTurn = false;
+				painter.repaint();
 			}
 			else if (CmdCode.equals(Server.S_OPPONENT_ARRIVE))
 			{
+				GameOver = false;
 				OpponentName = Param;
 				dlgWaiting.setVisible(false);
 				mainFrame.setTitle(PlayerName + " V.S. " + OpponentName);
-				lblMyName.setText(PlayerName);
-				lblOppName.setText(OpponentName);
 				painter.repaint();
 				cl.show(panelCont, "2");
 			}
 			else if (CmdCode.equals(Server.S_MOVEOK))
 			{
 				Spaces[Integer.parseInt(Param)] = 1;
+				MyTurn = !MyTurn;
 				painter.repaint();
 			}
 			else if (CmdCode.equals(Server.S_OPP_MOVEOK))
 			{
 				Spaces[Integer.parseInt(Param)] = 0;
+				MyTurn = !MyTurn;
 				painter.repaint();
 			}
 			else if (CmdCode.equals(Server.S_YOUWIN))
 			{
+				Send(Server.C_OVERCONFIRM);
 				GameOver = true;
 				IsWin = true;
 				painter.repaint();
 			}
 			else if (CmdCode.equals(Server.S_YOULOSE))
 			{
+				Send(Server.C_OVERCONFIRM);
 				GameOver = true;
 				IsLose = true;
 				painter.repaint();
 			}
 			else if (CmdCode.equals(Server.S_GAMETIE))
 			{
+				Send(Server.C_OVERCONFIRM);
 				GameOver = true;
 				IsTie = true;
+				painter.repaint();
+			}
+			else if (CmdCode.equals(Server.S_OPPONENT_QUIT))
+			{
+				JOptionPane.showMessageDialog(mainFrame, "Your rival leaves game..");
+				GameOver = true;
+				IsWin = true;
 				painter.repaint();
 			}
 			
@@ -266,15 +288,16 @@ public class ClientGui {
 			board = ImageIO.read(getClass().getResourceAsStream("/board.gif"));
 			circle = ImageIO.read(getClass().getResourceAsStream("/circle.png"));
 			cross = ImageIO.read(getClass().getResourceAsStream("/cross.png"));
-			loading = new ImageIcon("res/loading.gif");
 			background = ImageIO.read(getClass().getResourceAsStream("/background.png"));
 			win = ImageIO.read(getClass().getResourceAsStream("/win.png"));
 			lose = ImageIO.read(getClass().getResourceAsStream("/lose.png"));
 			tie = ImageIO.read(getClass().getResourceAsStream("/tie.png"));
+			URL imageURL = getClass().getResource("/loading.gif");
+			loading = new ImageIcon(imageURL);
 		}
 		catch (IOException e)
 		{
-			e.printStackTrace();
+			System.out.println("Load image error");
 		}
 	}
 	
@@ -295,16 +318,21 @@ public class ClientGui {
         }
 		try
 		{
-			Connect();
 			ClientGui cg = new ClientGui();	
 			cg.Prepare();
 			cg.LoadImages();
 			cg.Design();
+			try 
+			{
+				cg.Connect();
+			}
+			catch (IOException e)
+			{
+				System.err.println("Cannot connect to server...");
+				JOptionPane.showMessageDialog(cg.mainFrame, "Cannot connect to server..");
+				cg.mainFrame.dispatchEvent(new WindowEvent(cg.mainFrame,WindowEvent.WINDOW_CLOSING));
+			}
 			cg.Play();
-		}
-		catch (UnknownHostException e)
-		{
-			System.err.println("Host not found...");
 		}
 		catch (IOException e)
 		{
@@ -318,22 +346,6 @@ public class ClientGui {
 			out.println(input);
 			out.flush();
 		}
-		*/
-		//UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		
-		
-		/*
-		EventQueue.invokeLater(new Runnable()
-		{
-			public void run()
-			{
-				
-				//ClientGui cg = new ClientGui();	
-				//cg.Play();
-				//cg.LoadImages();
-				//cg.Design();
-			}
-		});
 		*/
 	}
 
@@ -410,6 +422,15 @@ public class ClientGui {
 			g.drawString(OpponentName, NAME_X, NAME_Y + NAME_GAP +NAME_GAP);
 			g.setFont(fontVersus);
 			g.drawString("Versus", NAME_X + VERSUS_OFFSET, NAME_Y + NAME_GAP);
+			g.setFont(fontTurn);
+			if (MyTurn)
+			{
+				g.drawString("Your Turn", TURN_X, TURN_Y);
+			}
+			else
+			{
+				g.drawString("Rival's Turn", TURN_X, TURN_Y);
+			}
 			
 			if (IsWin || IsLose || IsTie)
 			{
@@ -454,9 +475,12 @@ public class ClientGui {
 			System.out.println(x);
 			System.out.println(y);
 			gridNum = GetGridNum(x,y);
-			if (gridNum != -1)
+			if (!GameOver)
 			{
-				Send(Server.C_MOVETO + gridNum);
+				if (gridNum != -1)
+				{
+					Send(Server.C_MOVETO + gridNum);
+				}
 			}
 		}
 		
@@ -486,6 +510,8 @@ public class ClientGui {
 			if (PlayerName == null)
 			{
 				PlayerName = JOptionPane.showInputDialog(null,"Please Input Your Name:","");
+				if (PlayerName == null)
+					return;
 				Send(Server.C_NAMEIS + PlayerName);
 			}
 			dlgWaiting.setVisible(true);
@@ -498,13 +524,22 @@ public class ClientGui {
 	{
 		public void actionPerformed(ActionEvent event)
 		{
-			GameOver = false;
+			//GameOver = false;
 			IsWin = false;
 			IsLose = false;
 			IsTie = false;
 			for (int i = 0; i < 9; ++i)
 				Spaces[i] = -1;
+			btnBack.setVisible(false);
 			cl.show(panelCont, "1");
+		}
+	}
+	
+	private class QuitAction implements ActionListener
+	{
+		public void actionPerformed(ActionEvent event)
+		{
+			mainFrame.dispatchEvent(new WindowEvent(mainFrame,WindowEvent.WINDOW_CLOSING));
 		}
 	}
 	

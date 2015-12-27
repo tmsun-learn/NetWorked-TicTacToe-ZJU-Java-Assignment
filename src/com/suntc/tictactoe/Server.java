@@ -1,8 +1,6 @@
 package com.suntc.tictactoe;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -22,6 +20,7 @@ public class Server
 	public static final String C_NAMEIS = "#NAMEIS";
 	public static final String C_ENQUEUE = "#ENQUEU";
 	public static final String C_MOVETO = "#MOVETO";
+	public static final String C_OVERCONFIRM = "#OVERCF";
 	public static final String S_UNKNOWN_CMD = "#UNKNOW";
 	public static final String S_NAME_CONFIRED = "#NAMEOK";
 	public static final String S_OPPONENT_ARRIVE = "#OPPARR";
@@ -50,7 +49,7 @@ public class Server
 			{
 				Socket Sock = Server.accept();
 				ConnectionArray.add(Sock);
-				System.out.println("Connection from: " + Sock.getLocalAddress());
+				System.out.println("Connection from: " + Sock.getRemoteSocketAddress());
 				ProduceConsume P = new ProduceConsume();
 				ServerReturn SR = new ServerReturn(Sock,P);
 				X = new Thread(SR);
